@@ -2,6 +2,7 @@ package pl.edu.pjwstk.library.model;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,7 +21,7 @@ public class Book {
     private String title;
     private String isbn;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "book_author",
             joinColumns = @JoinColumn(name = "book_id"),
