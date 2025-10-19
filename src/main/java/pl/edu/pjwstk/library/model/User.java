@@ -21,7 +21,7 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
-    @Column(name = "mojaNazwaDlaEmail", unique = true)
+    @Column(unique = true)
     private String email;
     @OneToMany(mappedBy = "user")
     private List<Borrow> borrows;
@@ -57,5 +57,21 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public List<Borrow> getBorrows() {
+        return borrows;
+    }
+
+    public void setBorrows(List<Borrow> borrows) {
+        this.borrows = borrows;
+    }
+
+    public UserType getType() {
+        return type;
+    }
+
+    public void setType(UserType type) {
+        this.type = type;
     }
 }
