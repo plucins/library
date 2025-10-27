@@ -15,18 +15,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import pl.edu.pjwstk.library.dto.BookFilterDto;
 import pl.edu.pjwstk.library.model.Book;
 import pl.edu.pjwstk.library.service.BookService;
+import pl.edu.pjwstk.library.service.BookSpecificationService;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
     private final BookService bookService;
+    private final BookSpecificationService bookSpecificationService;
 
     @Autowired
-    public BookController(BookService bookService) {
+    public BookController(BookService bookService, BookSpecificationService bookSpecificationService) {
         this.bookService = bookService;
+        this.bookSpecificationService = bookSpecificationService;
     }
 
     // CREATE - Create new book
@@ -84,7 +88,7 @@ public class BookController {
 
     @GetMapping("/author")
     public ResponseEntity<List<Book>> getBooksByAuthorName(
-            @RequestParam String firstName, 
+            @RequestParam String firstName,
             @RequestParam String lastName) {
         List<Book> books = bookService.findByAuthorName(firstName, lastName);
         return ResponseEntity.ok(books);
@@ -117,4 +121,11 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<Book>> searchForBooks(@RequestBody BookFilterDto dto) {
+        List<Book> books = bookSpecificationService.searchForBooks(dto);
+        return ResponseEntity.ok(books);
+    }
+
 }
