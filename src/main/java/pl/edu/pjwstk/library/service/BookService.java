@@ -6,6 +6,8 @@ import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import pl.edu.pjwstk.library.exception.BookException;
+import pl.edu.pjwstk.library.exception.BusinessException;
 import pl.edu.pjwstk.library.model.Author;
 import pl.edu.pjwstk.library.model.Book;
 import pl.edu.pjwstk.library.model.Library;
@@ -26,13 +28,13 @@ public class BookService {
     }
 
     // CREATE - Create new book
-    public Book createBook(Book book) {
+    public Book createBook(Book book) throws BusinessException, BookException {
         if (book.getTitle() == null || book.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tytuł książki nie może być pusty");
+            throw new BookException("Tytuł książki nie może być pusty");
         }
         
         if (book.getIsbn() != null && bookRepository.existsByIsbn(book.getIsbn())) {
-            throw new IllegalArgumentException("Książka o ISBN '" + book.getIsbn() + "' już istnieje");
+            throw new BookException("Książka o ISBN '" + book.getIsbn() + "' już istnieje");
         }
         
         if (book.getTitle() != null && bookRepository.existsByTitle(book.getTitle())) {
@@ -87,13 +89,13 @@ public class BookService {
         return bookRepository.findByLibraryId(libraryId);
     }
 
-    public Book updateBook(Long id, Book bookDetails) {
+    public Book updateBook(Long id, Book bookDetails) throws BusinessException {
         Book book = findById(id);
 
         if (bookDetails.getTitle() != null && !bookDetails.getTitle().trim().isEmpty()) {
             if (!book.getTitle().equals(bookDetails.getTitle()) &&
                 bookRepository.existsByTitle(bookDetails.getTitle())) {
-                throw new IllegalArgumentException("Książka o tytule '" + bookDetails.getTitle() + "' już istnieje");
+                throw new BusinessException("Książka o tytule '" + bookDetails.getTitle() + "' już istnieje");
             }
             book.setTitle(bookDetails.getTitle());
         }

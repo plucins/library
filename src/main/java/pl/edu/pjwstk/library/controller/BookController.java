@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pl.edu.pjwstk.library.dto.BookFilterDto;
+import pl.edu.pjwstk.library.exception.BookException;
+import pl.edu.pjwstk.library.exception.BusinessException;
 import pl.edu.pjwstk.library.model.Book;
 import pl.edu.pjwstk.library.service.BookService;
 import pl.edu.pjwstk.library.service.BookSpecificationService;
@@ -35,13 +37,10 @@ public class BookController {
 
     // CREATE - Create new book
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        try {
+    public ResponseEntity<Book> createBook(@RequestBody Book book) throws BusinessException, BookException {
             Book createdBook = bookService.createBook(book);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+
     }
 
     @GetMapping
@@ -107,8 +106,8 @@ public class BookController {
             return ResponseEntity.ok(updatedBook);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+        } catch (BusinessException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
