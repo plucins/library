@@ -28,7 +28,7 @@ public class BookService {
     }
 
     // CREATE - Create new book
-    public Book createBook(Book book) throws BusinessException, BookException {
+    public Book createBook(Book book) throws  BookException {
         if (book.getTitle() == null || book.getTitle().trim().isEmpty()) {
             throw new BookException("Tytuł książki nie może być pusty");
         }
