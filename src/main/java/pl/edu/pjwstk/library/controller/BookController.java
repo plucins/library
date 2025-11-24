@@ -3,6 +3,7 @@ package pl.edu.pjwstk.library.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,9 +38,9 @@ public class BookController {
 
     // CREATE - Create new book
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book) throws BusinessException, BookException {
-            Book createdBook = bookService.createBook(book);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
+    public ResponseEntity<Book> createBook(@RequestBody Book book) throws BookException {
+        Book createdBook = bookService.createBook(book);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
 
     }
 
@@ -125,6 +126,18 @@ public class BookController {
     public ResponseEntity<List<Book>> searchForBooks(@RequestBody BookFilterDto dto) {
         List<Book> books = bookSpecificationService.searchForBooks(dto);
         return ResponseEntity.ok(books);
+    }
+
+    //http://localhost:8080/api/books/filter?page=0&size=10
+    @PostMapping("/filter")
+    public ResponseEntity<Page<Book>> getAllBookWithFilter(
+            @RequestBody BookFilterDto dto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDir
+    ) {
+        return ResponseEntity.ok(bookService.findAllPagin(dto, page, size, sortBy, sortDir));
     }
 
 }

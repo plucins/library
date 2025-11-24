@@ -3,8 +3,6 @@ package pl.edu.pjwstk.library.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +33,7 @@ public class BookSpecificationService {
         return bookRepository.findAll(spec);
     }
 
-    private Specification<Book> createSpecification(BookFilterDto dto) {
+    public Specification<Book> createSpecification(BookFilterDto dto) {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
 
@@ -55,13 +53,13 @@ public class BookSpecificationService {
 
                 if (dto.getAuthorFirstName() != null && !dto.getAuthorFirstName().trim().isEmpty()) {
                     predicate = cb.and(predicate,
-                            cb.like(cb.lower(authorJoin.get(dto.getAuthorFirstName())),
+                            cb.like(cb.lower(authorJoin.get("firstName")),
                                     "%" + dto.getAuthorFirstName().toLowerCase() + "%"));
                 }
 
                 if (dto.getAuthorLastName() != null && !dto.getAuthorLastName().trim().isEmpty()) {
                     predicate = cb.and(predicate,
-                            cb.equal(cb.lower(authorJoin.get(dto.getAuthorLastName())),
+                            cb.equal(cb.lower(authorJoin.get("lastName")),
                                     dto.getAuthorLastName().toLowerCase()));
                 }
             }

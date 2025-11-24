@@ -4,8 +4,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import pl.edu.pjwstk.library.dto.BookFilterDto;
 import pl.edu.pjwstk.library.exception.BookException;
 import pl.edu.pjwstk.library.exception.BusinessException;
 import pl.edu.pjwstk.library.model.Author;
@@ -19,24 +25,27 @@ public class BookService {
     private final BookRepository bookRepository;
     private final AuthorService authorService;
     private final LibraryService libraryService;
+    private final BookSpecificationService bookSpecificationService;
 
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorService authorService, LibraryService libraryService) {
+    public BookService(BookRepository bookRepository, AuthorService authorService, LibraryService libraryService,
+            BookSpecificationService bookSpecificationService) {
         this.bookRepository = bookRepository;
         this.authorService = authorService;
         this.libraryService = libraryService;
+        this.bookSpecificationService = bookSpecificationService;
     }
 
     // CREATE - Create new book
-    public Book createBook(Book book) throws  BookException {
+    public Book createBook(Book book) throws BookException {
         if (book.getTitle() == null || book.getTitle().trim().isEmpty()) {
             throw new BookException("Tytuł książki nie może być pusty");
         }
-        
+
         if (book.getIsbn() != null && bookRepository.existsByIsbn(book.getIsbn())) {
             throw new BookException("Książka o ISBN '" + book.getIsbn() + "' już istnieje");
         }
-        
+
         if (book.getTitle() != null && bookRepository.existsByTitle(book.getTitle())) {
             throw new IllegalArgumentException("Książka o tytule '" + book.getTitle() + "' już istnieje");
         }
@@ -45,7 +54,8 @@ public class BookService {
             for (Author author : book.getAuthors()) {
                 if (author.getId() == null) {
                     authorService.createAuthor(author);
-                } else {
+                }
+                else {
                     authorService.findById(author.getId());
                 }
             }
@@ -54,7 +64,7 @@ public class BookService {
         if (book.getLibrary() != null && book.getLibrary().getId() != null) {
             libraryService.findById(book.getLibrary().getId());
         }
-        
+
         return bookRepository.save(book);
     }
 
@@ -94,15 +104,15 @@ public class BookService {
 
         if (bookDetails.getTitle() != null && !bookDetails.getTitle().trim().isEmpty()) {
             if (!book.getTitle().equals(bookDetails.getTitle()) &&
-                bookRepository.existsByTitle(bookDetails.getTitle())) {
+                    bookRepository.existsByTitle(bookDetails.getTitle())) {
                 throw new BusinessException("Książka o tytule '" + bookDetails.getTitle() + "' już istnieje");
             }
             book.setTitle(bookDetails.getTitle());
         }
 
         if (bookDetails.getIsbn() != null && !bookDetails.getIsbn().trim().isEmpty()) {
-            if (!book.getIsbn().equals(bookDetails.getIsbn()) && 
-                bookRepository.existsByIsbn(bookDetails.getIsbn())) {
+            if (!book.getIsbn().equals(bookDetails.getIsbn()) &&
+                    bookRepository.existsByIsbn(bookDetails.getIsbn())) {
                 throw new IllegalArgumentException("Książka o ISBN '" + bookDetails.getIsbn() + "' już istnieje");
             }
             book.setIsbn(bookDetails.getIsbn());
@@ -112,7 +122,8 @@ public class BookService {
             for (Author author : bookDetails.getAuthors()) {
                 if (author.getId() == null) {
                     authorService.createAuthor(author);
-                } else {
+                }
+                else {
                     authorService.findById(author.getId());
                 }
             }
@@ -123,7 +134,8 @@ public class BookService {
             if (bookDetails.getLibrary().getId() != null) {
                 Library library = libraryService.findById(bookDetails.getLibrary().getId());
                 book.setLibrary(library);
-            } else {
+            }
+            else {
                 book.setLibrary(null);
             }
         }
@@ -148,5 +160,20 @@ public class BookService {
 
     public boolean existsById(Long id) {
         return bookRepository.existsById(id);
+    }
+
+    public Page<Book> findAllPagin(BookFilterDto dto, int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("DESC") ?
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        if (dto == null) {
+            dto = new BookFilterDto();
+        }
+
+        Specification<Book> spec = bookSpecificationService.createSpecification(dto);
+
+        return bookRepository.findAll(spec, pageable);
     }
 }
